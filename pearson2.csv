@@ -1,0 +1,8 @@
+Parameter ,bridge_deck,dew_point,wind_chill,wet_bulb,air_temp,relative_humidity,wind_speed
+bridge_pavement,1,0.381,0.649,0.73,0.753,0.019,0.3
+dew_point_temp,0.381,1,0.611,0.828,0.548,0.856,-0.152
+wind_chill_temp,0.649,0.611,1,0.884,0.852,0.19,-0.326
+wet_bulb_temp,0.73,0.828,0.884,1,0.867,0.456,-0.02
+relative_humidity,0.019,0.856,0.19,0.456,0.112,1,-0.195
+air_temp,0.753,0.548,0.852,0.867,1,0.112,0.048
+wind_speed,0.3,-0.152,-0.326,-0.02,0.048,-0.195,1

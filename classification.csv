@@ -1,0 +1,4 @@
+independent_variable,classification,number_of_levels
+air_temp,"-10-5 degrees C, increasing by 0.5 degrees C",31
+relative_humidity,"15% and below; 15%-100%, increasing by 5%",18
+wind_scale,"level 0-6, increasing step-by-step",7

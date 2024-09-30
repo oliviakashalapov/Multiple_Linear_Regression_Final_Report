@@ -1,0 +1,193 @@
+---
+title: Replication of Critical Meteorological Conditions Prediction for Expressway
+  Bridge Pavement Icing
+author:
+- Madison Woo (2975355), madison.woo@uconn.edu
+- Olivia Kashalapov (2940517), olivia.kashalapov@uconn.edu
+date: "12/08/23"
+output:
+  pdf_document: null
+  highlight: default
+  keep_tex: no
+  fig_caption: yes
+  latex_engine: pdflatex
+  html_document:
+    df_print: paged
+  word_document: default
+affiliation: Department of Statistics, UConn
+fontsize: 11pt
+geometry: margin=1in
+---
+
+### Section 1. Introduction: 
+
+The objective of this project is to replicate and analyze the findings of the original study to verify the models that they use for bridge pavement temperature prediction. By replicating this study, our goal is to understand the factors that contribute to bridge pavement temperatures during winter conditions. 
+
+This study focuses on predicting critical meteorological conditions for icy bridge decks on expressways during winter. Accurate bridge pavement temperature prediction is significant information for early warning systems to enhance traffic safety in icy conditions. The study conducted in the paper is based on meteorological data from a monitoring station on the Tuhai River Bridge in Shandong province, China, which is an important component of the Beijing-Shanghai Expressway.
+
+The study introduces models for predicting bridge pavement temperatures during winter. These models use a smaller sample size, which is good for areas with less data. The BP neural network model was used in the study, in particular, to show better accuracy and is recommended for predicting expressway bridge deck temperatures.
+
+A valuable characteristic of BP neural networks using nonlinear transfer functions is their ability to model complex algorithms related to nonlinear issues. An accurate BP neural network can predict the error in bridge pavement temperature during winter without understanding the internal interactions among influencing factors. This ability enhances the bridge deck icing prediction accuracy. 
+
+The goal of our project is to replicate the study using multiple linear regression to predict critical meteorological conditions of expressway bridge pavement icing, we aim to validate the predictive capabilities of these models for bridge pavement temperatures in winter conditions. This replication project will help us get a better understanding of factors influencing bridge pavement temperatures, which ensures safe expressway travel during colder months of the year. 
+
+The analysis of the data in the original study calculates the confidence intervals of the data, but it does not really check assumptions of the data. For our extension/enhancement, we will be checking the statistical assumptions and reporting it in our replication. 
+
+### Section 2. Description of the Data: 
+
+```{r include = FALSE}
+knitr::opts_chunk$set(echo = FALSE) # suppresses the code but not the results for each code chunk
+library(alr4) # loads the alr4 package 
+library(psych) # loads the psych package 
+library(leaps) # loads the leaps package
+rawdata <- read.csv("rawdata.csv") # adds the csv file data 
+```
+
+In order to forecast when roads might get icy, a study was conducted that gathered and analyzed minute-by-minute weather data of traffic meteorological stations installed on expressway bridges. Data was measured from a traffic weather monitoring station on the Tuhai River Bridge, which is part of the Beijing-Shanghai Expressway. This expressway is crucial in connecting Beijing and Shanghai. The Tuhai River Bridge is a continuous rigid-frame bridge that is often used when  constructing large-span bridges. The meteorological station, in Shandong Province, experiences a temperature continental climate with harsh winters. This station is the typical observation point for studying bridge icing. 
+
+By the definition of icing, if the bridge's temperature is below 0°C while it is raining or snowing, it is considered icy. The site's meteorological data gathers information such as bridge pavement temperature (°C), dew point temperature (°C), wind chill temperature (°C), wet bulb temperature (°C), relative humidity (%), air temperature (°C), and wind speed (m/s), by the time. The study focused on winter months (December, January, and February) from the past three years (2020-2022), as depicted in Table 1 below. 
+
+```{r }
+tuhai <- read.csv("tuhai.csv") # adds meteorological data for tuhai river bridge
+"Table 1. Meteorological data of Tuhai River Bridge." # table title 
+tuhai # prints the table of the meteorological data for tuhai river bridge
+```
+
+The minute-by-minute meteorological data collected are quite consistent over short periods, as seen in Table 1. The road's adhesion coefficient drops rapidly when the bridge deck begins to freeze, even if the nearby road sections have not experienced icing yet. When a vehicle moves onto the bridge, the sudden shift in the adhesion coefficient can have critical impact on driving safety. This is why identifying the point when the bridge deck begins to ice is crucial, as stable weather conditions alone do not influence the icing state. Noticeable changes in weather factors have the potential to change the bridge deck's icing state, which is important to take into account when predicting pavement temperature and icing. In order to choose an effective sample for predicting bridge pavement temperature, it is necessary to categorize meteorological data levels to capture significant changes. 
+
+To effectively choose samples, accurately predict bridge deck temperature, and determine whether the bridge section is icing, it is important to identify the factors influencing the bridge deck temperatures. Literature analysis indicates that meteorological factors such as temperature, humidity, and wind speed affect the bridge pavement temperature. The bridge pavement temperature is the regressor or independent variable. Using multiple linear regression helps identify  influencing factors by looking at the interaction between the independent variables and predicting the dependent variable. 
+
+Pearson partial correlation analysis is done to study the correlation between the variables. Meteorological factors remain consistent over short periods, and there are a few outliers in bridge pavement temperature due to external factors such as the environment and traffic. As a result, data at 10-minute intervals from three winters were chosen. After removing missing data, 11,837 sets of valid data were obtained, as shown in the raw data set. Table 2 displays the Pearson partial correlation coefficient among variables. 
+
+```{r }
+pearson <- read.csv("pearson.csv") # adds the pearson partial correlation csv file 
+"Table 2. Pearson partial correlation analysis results." # table 2 title 
+pearson # prints out the table 
+"Scatterplot Matrix 1" # scatterplot 2 matrix label 
+pairs.panels(pearson[,c(1:8)], ellipses = FALSE, hist.col = "skyblue1", 
+             method = "pearson", density = TRUE) # creates the scatterplot matrix
+```
+
+A coefficient closer to 1 means that there is a stronger correlation between two variables. The scatterplot matrices in this replication were not included in the original study, but are there to verify and visually evaluate collinearity as opposed to the table. From Scatterplot Matrix 1 and Table 2, it can be seen that bridge pavement temperature has the highest correlation with air temperature, while air temperature is strongly correlated with wind chill and wet bulb temperatures. The dew point temperature has a high correlation with air temperature and relative humidity as well. To efficiently screen effective samples, air temperature, relative humidity, and wind speed were chosen as indicators for classifying sample grades when predicting bridge pavement temperature.
+
+To enhance the prediction accuracy of bridge pavement temperature and icing, it is important to categorize meteorological data based on a sample grading index. After preprocessing the 11,837 data sets, it was found that the bridge deck starts freezing when the air temperature falls below 5°C, with stable freezing happening below -10°C. Using wind scale specifications and relative humidity ranges, a sample level division was established, resulting in 3,906 sample classification standards. Out of those 3,906 samples, 1,378 groups met the classification standards. A sample level division is shown in Table 3 below.
+
+```{r }
+classification <- read.csv("classification.csv") # adds the classification csv file 
+"Table 3. Classification criteria for valid sample grades." # table 3 label 
+classification # prints out classification criteria table 
+```
+
+It is important to check the linearity assumption among independent variables. A partial correlation coefficient close to 1 between two independent variables indicates collinearity, which can impact the accuracy of the regression model. To prevent this, collinear factors should be excluded from the analysis.
+
+```{r }
+pearson2 <- read.csv("pearson2.csv") # adds the csv file data 
+"Table 4. Pearson partial correlation analysis results." # table title 
+pearson2 # prints out the second pearson partial correlation table 
+"Scatterplot Matrix 2" # scatterplot 2 matrix title 
+pairs.panels(pearson2[,c(1:8)], ellipses = FALSE, hist.col = "mediumpurple", 
+             method = "pearson", density = TRUE) # creates the scatterplot matrix
+```
+
+Using the 1,378 valid samples from the pearson correlation analysis method, Scatterplot Matrix 2 and Table 4 shows high partial correlation coefficients among air temperature, wind chill temperature, wet bulb temperature, relative humidity, and dew point temperature. This indicates a clear collinearity trend. As a result, dew point temperature, wind chill temperature, and wet bulb temperature are excluded, while air temperature, relative humidity, and wind speed are kept in the highway bridge pavement temperature prediction model.
+
+### Section 3. Methods (or Models) and Analysis:
+
+To enhance the accuracy of the temperature predictions, two models were created - one using multiple linear regression and another using a neutral network with a nonlinear function. The assumptions of the data is that there is linearity, homoscedasticity, errors are independent, and there is normality. 
+
+```{r }
+m1 <- lm(bridge_deck ~ air_temp + relative_humidity + wind_speed, data = rawdata) # creates the model of the data without collinear factors 
+summary(m1) # prints out the summary of the model 
+confint(m1, level = 0.95) # gives the 95% confidence interval for bridge temps 
+```
+
+As mentioned before, model with air temperature, relative humidity, and wind speed are kept in the highway bridge pavement temperature prediction model. The numbers in this replication are different than the numbers in the original study, which will be explained more in the discussion. The model is represented as T = -0.023 + 0.959X1 - 0.009X2 + 0.621X3. T, X1, X2, and X3 represent the bridge pavement temperature (°C), air temperature (°C), relative humidity (%), wind speed (m/s) respectively.
+
+Included in the study was the 95% confidence interval model. The original study did not show their confidence interval calculations, but we did here. Since the independence assumption and constant variance assumption is violated, the confidence interval values in this model are not correct because the standard errors are affected. This will be expanded on in the discussion component of this replication. Our 95% confidence interval model is T = -0.246 + 0.948X1 - 0.012X2 + 0.587X3. The summary of the model indicates that the coefficient of determination R^2 is 0.733, suggesting that 73.3% of the bridge pavement temperature is explained by air temperature, relative humidity, and wind speed. The F-test value is 1.081e+04 with a p-value of 2.2e-16. Since the p-value is less than the significance level of 0.05, the model parameters are suitable for estimating the entire sample, passing the significance test. 
+
+The bridge pavement temperature prediction model calculated above is based on the linear relationship between air temperature, relative humidity, wind speed and bridge pavement temperature. To improve prediction accuracy, the study uses BP neural network to predict bridge pavement temperature based on a nonlinear algorithm. Our replication focuses on multiple linear regression methods only, so we will not be including the BP neural network model. 
+
+```{r }
+set.seed(0) # setting the seed 
+out <- regsubsets(bridge_deck ~ air_temp + relative_humidity + wind_speed, data = rawdata) # selects the best subset model 
+cbind(summary(out)$which, adjr2=summary(out)$adjr2, BIC=summary(out)$bic) # outputs which predictors should be included in the model 
+df <- rawdata[2:501, ] # takes first 500 data points 
+x <- as.matrix(df[,2:7]) # the predictors in the data 
+y <- log(df[,7]) # the response in the data 
+n <- dim(df)[1] # finds the value of n 
+syy <- (n - 1)*var(y) # calculates syy 
+m1.predicted <- predict(m1, newdata = as.data.frame(x)) # prediction of the model 
+sse <- sum((y - m1.predicted)^2) # calculating the standard errors 
+m1.out <- c(mse = sse/n, mae= mean(abs(y - m1.predicted)), VEcv= (1-sse/syy)*100) # prediction accuracy, mse, mae, and vecv for m1
+m1.out # prints out the results 
+```
+
+To substitute, we have included a multiple linear regression prediction accuracy for our model. The collinear factors were previously excluded, but it can be confirmed that the best model with the remaining predictors involves the intercept, air temperature, relative humidity, and wind speed. The model with all three predictors has both the highest adjusted R^2 and the lowest BIC as seen above, which means that it is the best subset model. The predictive accuracy is shown in the code by the MSE, MAE, and VEcv values. The MSE value is 86.049111, the MAE is 8.851913, and the VEcv is -27006.427296 for m1.  
+
+### Section 4. Extension/Enhancement: 
+
+For our extension/enhancement, we will be checking the assumptions of the data. The study mentions removing predictors with collinear factors, but only provides the table to check variables with high collinearity. The study does not check for any other assumptions. For our assumption of normality and Tukey's test, we used studentized residuals. 
+
+```{r }
+vif(m1) # tests for collinearity
+```
+
+There does not appear to be an multicollinearity, so the linearity assumption is upheld. All of the VIF scores are between 1 and 1.1, which is very low. A score 5 and above would be of concern for the linearity assumption. 
+
+```{r }
+ncvTest(m1) # conducts the Breusch-Pagan test and tests for homoscedasticity 
+```
+
+Since the p-value is 2.22e-16, which is less than the significance value of 0.05, this means that we reject that null hypothesis that there is constant variance and conclude the constant variance assumption is not reasonable with respect to the fitted values. This can also be shown in the residuals plot below. In the residuals plot, we use a model that takes a smaller sample of the data, the first 800 data points. 
+
+```{r }
+durbinWatsonTest(m1) # tests for independence of errors assumption 
+sample <- rawdata[2:801, ] # takes a smaller sample of the raw data  
+m2 <- lm(bridge_deck ~ air_temp + relative_humidity + wind_speed, data = sample) # creates the model from the sample data 
+residualPlot(m2) # plots the residuals to check independence assumption 
+residualPlots(m1, type = "rstudent", plot = FALSE) # conducting Tukey's test 
+```
+
+The null hypothesis states that the errors are independent. Since we have a p-value of 0, which is greater than the significance value of 0.05, we fail to reject the null hypothesis that the errors are not auto-correlated with themselves. This means that the errors are not independent. The residuals plot also displays how the data is clustered towards the end and there is slight curvature with the fitted line. This shows how the variables are not independent of one another and there is not constant variance. We tested if the curvature was of concern with Tukey's test of nonadditivity. For Tukey's test, we used the model with the full data set. The Tukey test for nonadditivity has a low p-value, indicating that the curvature is a cause for concern and the mean function specified might not be as adequate. 
+
+```{r }
+ti <- rstudent(m1) # takes the residuals of the model
+qqnorm(ti) # creates the qq plot 
+qqline(ti) # adds a fitted line to the qq plot 
+ks.test(ti, "pnorm") # conducts the Kolmogorov-Smirnov test
+```
+
+For the normality test, we have a large sample size of 11,837, so we used a QQ plot and the Kolmogorov-Smirnov test. The QQ plot appears to be light-tailed, which is not normal. Only the ends deviate, so the distribution may still be somewhat normal. The Kolmogorov-Smirnov test has a low p-value of 2.2e-16, which is smaller than the significance level of 0.05. The normality assumption is not met since the p-value rejects the null hypothesis that the data is normally distributed. 
+
+```{r }
+influenceIndexPlot(m1) # creates the influence index plot 
+```
+
+There are only a few influential data points out of the large data set. The outliers appear to be at index 15, 21, 7315, 7460. These outliers affect the mean value produced by the data set. 
+
+### Section 5. Discussion: 
+
+The values for the model and coefficient of determination R^2 are different in this replication than the original study. The coefficient of determination and F-statistic in this replication was higher than in the paper. Unaccounted variables or confounding factors in the original study could contribute to differences in outcomes as well. It was not clear whether or not the original study used the valid samples of the data or the full raw data set for their model, which is another reason why the results might be different. The study also did not show what those valid samples were even though they described how to classify those data points.
+
+```{r }
+m3 <- lm(bridge_deck ~ air_temp + wind_speed, data = rawdata) # refitted model without relative humidity
+summary(m3) # the summary of m2 - refitted model include in the discussion how we tried refitting and they still did not match so their is an error in their interpretation 
+confint(m3, level = 0.95) # 95% confidence interval for refitted model 
+```
+
+In our replication, we tried refitting the data (as shown above) without relative humidity. This was to see if the model values would match the ones in the study and if that is what they may have done for their model fit, but the values still did not match. This means that this is not what the original study did and the original study did not interpret their model correctly since they forgot to mention relative humidity as an explanation for the bridge pavement temperatures.
+
+```{r }
+rmse <- sqrt(sse/n) # calculates the root mean square error
+sprintf("Root Mean Square Error = %f", rmse)
+```
+
+The root mean square error value (RMSE) being 9.276266 indicates that the model may not fit the data or make accurate predictions. The difference between the predicted value of the linear regression model and the real is greater. As seen in the BIC and adjusted R^2 calculation, the model with all three predictors has both the highest adjusted R^2 and the lowest BIC, which means that it is still the best subset model to use for bridge pavement temperature predictions. Our R^2 value of 0.733 is high which indicates high reliability and good fitting degree, indicating that our model is useful to predict the bridge pavement temperature. 
+
+All of the listed assumptions in Section 3 were tested as part of the extension/enhancement. All of the assumptions were violated except for the linearity assumption. The linearity assumption was not violated because in the study, the included a model that excluded collinear factors. Since multiple assumptions in this paper were not met, the inferences concluded in this paper are not correct. The violation of the constant variance assumption and normality assumption means that there can be inaccurate confidence intervals and p-values. The errors not being independent entails that there is a relationship between the residuals of our model and the response variables. If error terms in the regression model are positively (auto)correlated, the use of the OLS procedures has a number of important consequences: correlation will not affect the unbiasedness of OLS estimators, but it does affect their efficiency, it may seriously underestimate the true variance of the error terms, standard errors calculated according to the OLS procedure may seriously underestimate the true standard deviation of the estimated regression coefficient, confidence intervals and tests using the t and F distributions are no longer accurate. 
+
+Using data from small traffic meteorological monitoring stations, the researchers implemented a multiple linear regression method to establish a predictive model. The linear regression model did not perform too well, meaning that these predictions are not very accurate. The study recognizes the need for future research to include data from various stations to improve the models applicability, especially in regions lacking meteorological monitoring stations. 
+
+### References 
+
+Han, S., Liu, Z., Xu, J., & Yan, M. (2022). Using multiple linear regression and BP neural network to predict critical meteorological conditions of expressway bridge pavement icing. PLOS ONE, 17(2). https://doi.org/10.1371/journal.pone.0263539 
